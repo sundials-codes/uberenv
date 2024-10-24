@@ -306,6 +306,12 @@ def parse_args():
                       default=None,
                       help="Add the gpg keys to the spack gpg keyring")
 
+    # Spack commit (override json file)
+    parser.add_argument("--spack-commit",
+                      dest="spack_commit",
+                      default=None,
+                      help="Spack commit to use (overrides json config file)")
+
     ###############
     # parse args
     ###############
@@ -842,10 +848,14 @@ class SpackEnv(UberEnv):
             clone_cmd =  "git {0} clone --single-branch --depth=1 -b {1} {2} spack".format(clone_args, spack_branch, spack_url)
             sexe(clone_cmd, echo=True)
 
-        if "spack_commit" in self.project_args:
+        if "spack_commit" in self.args or "spack_commit" in self.project_args:
             # optionally, check out a specific commit
             os.chdir(pjoin(self.dest_dir,"spack"))
-            sha1 = self.project_args["spack_commit"]
+            sha1 = ""
+            if "spack_commit" in self.args:
+                sha1 = self.args["spack_commit"]
+            else:
+                sha1 = self.project_args["spack_commit"]
             res, current_sha1 = sexe("git log -1 --pretty=%H", ret_output=True)
             if sha1 != current_sha1:
                 print("[info: using spack commit {0}]".format(sha1))
